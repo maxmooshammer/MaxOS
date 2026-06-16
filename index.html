@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IA Aplicada à Engenharia Civil — Da Concepção à Conferência de Projetos</title>
+<style>
+  :root{
+    --bg:#0f1f2e;          /* azul-petróleo escuro */
+    --bg2:#13283b;
+    --ink:#eaf2f8;
+    --muted:#9fb3c5;
+    --accent:#2dd4bf;      /* teal */
+    --accent2:#f59e0b;     /* âmbar */
+    --line:#23475f;
+    --card:#16314a;
+    --good:#34d399;
+    --warn:#fbbf24;
+    --bad:#f87171;
+    --code:#0b1822;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Deck / slides ---------- */
+  .deck{position:fixed;inset:0}
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    padding:4.2vh 6vw 7vh;
+    background:radial-gradient(120% 120% at 85% -10%, var(--bg2) 0%, var(--bg) 55%);
+    animation:fade .45s ease;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  h1{font-size:clamp(28px,5vw,58px);line-height:1.05;letter-spacing:-.02em;font-weight:800}
+  h2{font-size:clamp(24px,3.6vw,42px);line-height:1.1;letter-spacing:-.015em;font-weight:800;margin-bottom:.3em}
+  h3{font-size:clamp(18px,2.1vw,26px);font-weight:700;color:var(--accent)}
+  p,li{font-size:clamp(15px,1.7vw,22px);line-height:1.5;color:var(--ink)}
+  .muted{color:var(--muted)}
+  .accent{color:var(--accent)}
+  .accent2{color:var(--accent2)}
+  b,strong{color:#fff}
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:.5em;
+    font-size:clamp(12px,1.3vw,16px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:.8em
+  }
+  .eyebrow::before{content:"";width:34px;height:2px;background:var(--accent);display:inline-block}
+
+  ul{list-style:none}
+  ul.bullets li{position:relative;padding-left:1.5em;margin:.55em 0}
+  ul.bullets li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  ul.checks li{position:relative;padding-left:1.7em;margin:.5em 0}
+  ul.checks li::before{content:"✓";position:absolute;left:0;color:var(--good);font-weight:800}
+
+  .grid{display:grid;gap:1.1rem;margin-top:1rem}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+
+  .card{
+    background:linear-gradient(180deg,var(--card),#12283d);
+    border:1px solid var(--line);
+    border-radius:16px;padding:1.1rem 1.2rem;
+  }
+  .card h3{margin-bottom:.35em;font-size:clamp(16px,1.9vw,22px)}
+  .card p,.card li{font-size:clamp(13px,1.45vw,18px);color:var(--muted)}
+  .card .big{font-size:clamp(30px,4vw,46px);font-weight:800;color:#fff;line-height:1}
+  .card.accentbar{border-top:3px solid var(--accent)}
+  .card.amberbar{border-top:3px solid var(--accent2)}
+
+  .pill{display:inline-block;padding:.25em .7em;border-radius:999px;border:1px solid var(--line);
+        background:#0e2336;color:var(--muted);font-size:.72em;font-weight:700;margin:.2em .25em 0 0}
+  .pill.on{color:var(--accent);border-color:var(--accent)}
+
+  .lead{font-size:clamp(18px,2.3vw,28px);color:var(--muted);max-width:30ch}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:2.2rem;flex:1;align-items:start}
+  .stack{display:flex;flex-direction:column;gap:.6rem}
+
+  pre{
+    background:var(--code);border:1px solid var(--line);border-radius:14px;
+    padding:1rem 1.1rem;overflow:auto;font-family:var(--mono);
+    font-size:clamp(11px,1.25vw,15px);line-height:1.5;color:#d6e4ef
+  }
+  code{font-family:var(--mono)}
+  .tok-k{color:#7dd3fc}      /* keyword */
+  .tok-s{color:#86efac}      /* string */
+  .tok-c{color:#6b8299;font-style:italic} /* comment */
+  .tok-f{color:#fcd34d}      /* function */
+  .tok-n{color:#f9a8d4}      /* number/literal */
+
+  table{border-collapse:collapse;width:100%;font-size:clamp(12px,1.4vw,18px)}
+  th,td{text-align:left;padding:.55em .7em;border-bottom:1px solid var(--line)}
+  th{color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.8em}
+  td.muted{color:var(--muted)}
+
+  .flow{display:flex;align-items:stretch;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+  .step{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem}
+  .step .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;
+           background:var(--accent);color:#04201c;font-weight:800;margin-bottom:.5em}
+  .arrow{display:flex;align-items:center;color:var(--accent);font-size:1.6em;font-weight:700}
+
+  .kpi{display:flex;gap:1.6rem;flex-wrap:wrap;margin-top:.6rem}
+  .kpi .item{}
+  .kpi .num{font-size:clamp(30px,5vw,56px);font-weight:800;color:var(--accent);line-height:1}
+  .kpi .lbl{color:var(--muted);font-size:clamp(12px,1.3vw,16px)}
+
+  .footer{position:absolute;left:6vw;right:6vw;bottom:2.4vh;display:flex;justify-content:space-between;
+          align-items:center;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:.7vh}
+  .footer .tag{font-weight:700;color:var(--accent)}
+
+  /* progress + hud */
+  .progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));z-index:50;transition:width .3s}
+  .hud{position:fixed;right:14px;bottom:12px;z-index:60;display:flex;gap:8px;align-items:center}
+  .hud .btn{background:#0e2336;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+            padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--font)}
+  .hud .btn:hover{color:var(--accent);border-color:var(--accent)}
+  #timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+  #timer.warn{color:var(--warn)} #timer.over{color:var(--bad)}
+
+  /* speaker notes */
+  .notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;
+         background:#081521;border-top:2px solid var(--accent);padding:18px 6vw 22px;
+         transform:translateY(101%);transition:transform .3s;z-index:55}
+  .notes.show{transform:none}
+  .notes h4{color:var(--accent);font-size:14px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5em}
+  .notes p{font-size:16px;color:#cfe0ec;margin:.4em 0}
+  .notes .min{color:var(--accent2);font-weight:700}
+
+  .title-wrap{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .badges{margin-top:1.6rem}
+  .center{flex:1;display:flex;flex-direction:column;justify-content:center}
+
+  .quote{font-size:clamp(22px,3.4vw,40px);font-weight:700;line-height:1.25;max-width:24ch}
+  .small{font-size:clamp(12px,1.35vw,16px)}
+  .tagrow{margin-top:.8rem}
+  .divider{height:1px;background:var(--line);margin:1rem 0}
+
+  .legend{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:.7rem;color:var(--muted);font-size:14px}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:.4em;vertical-align:middle}
+
+  @media (max-width:760px){
+    .two,.g2,.g3,.g4{grid-template-columns:1fr}
+    .slide{padding:5vh 7vw 9vh}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 — CAPA -->
+  <section class="slide active" data-notes="Bem-vindos. Esta é uma apresentação de no máximo 30 minutos. O cronômetro no canto inferior direito ajuda a manter o ritmo: ~1 a 1,5 min por slide. Use as setas do teclado para navegar e a tecla N para abrir estas notas. Objetivo: sair daqui sabendo o que é, como usar, como conferir e como construir suas próprias ferramentas de IA para projetos de engenharia.">
+    <div class="title-wrap">
+      <span class="eyebrow">Engenharia Civil • Produtividade • Qualidade</span>
+      <h1>Inteligência Artificial aplicada à<br><span class="accent">Engenharia Civil</span></h1>
+      <p class="lead" style="margin-top:1.1rem;max-width:46ch">Da concepção do projeto à conferência técnica: como usar o Claude, elaborar memoriais, automatizar verificações e desenvolver suas próprias ferramentas.</p>
+      <div class="badges">
+        <span class="pill on">Memoriais & especificações</span>
+        <span class="pill on">Conferência normativa (ABNT)</span>
+        <span class="pill on">Automação & quantitativos</span>
+        <span class="pill on">Ferramentas próprias (API)</span>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Apresentação de 30 min</span><span>Pressione → para iniciar &nbsp;•&nbsp; N = notas do apresentador</span></div>
+  </section>
+
+  <!-- 2 — AGENDA -->
+  <section class="slide" data-notes="Apresente o roteiro em 30 segundos. São 7 blocos. Diga ao público que a parte mais prática (receitas e conferência) está no meio, e o desenvolvimento de ferramentas próprias no fim. Combine a regra de ouro: a IA acelera, o engenheiro responde tecnicamente (ART/RRT).">
+    <span class="eyebrow">Roteiro</span>
+    <h2>O que vamos percorrer em 30 minutos</h2>
+    <div class="grid g4" style="margin-top:1.4rem">
+      <div class="card accentbar"><h3>1 · Contexto</h3><p>Por que agora e o que muda no fluxo do projetista</p></div>
+      <div class="card accentbar"><h3>2 · Fundamentos</h3><p>O que é o Claude e como acessá-lo</p></div>
+      <div class="card accentbar"><h3>3 · Bom prompt</h3><p>Anatomia + cuidados (alucinação, sigilo, NBR)</p></div>
+      <div class="card amberbar"><h3>4 · Aplicações</h3><p>Memoriais, especificações, quantitativos, análise de documentos</p></div>
+      <div class="card amberbar"><h3>5 · Conferência</h3><p>Revisão normativa e compatibilização assistida</p></div>
+      <div class="card amberbar"><h3>6 · Mão na massa</h3><p>Receitas prontas + Projects + Claude Code</p></div>
+      <div class="card"><h3>7 · Ferramentas próprias</h3><p>API, Python e agentes conectados às suas ferramentas</p></div>
+      <div class="card"><h3>+ Implementação</h3><p>Roadmap no escritório e governança</p></div>
+    </div>
+    <div class="footer"><span class="tag">Agenda</span><span>~1 a 1,5 min por slide</span></div>
+  </section>
+
+  <!-- 3 — POR QUE AGORA -->
+  <section class="slide" data-notes="Foque na dor real do escritório: tempo gasto em tarefas repetitivas de texto e conferência. A IA não projeta no seu lugar — ela elimina o trabalho braçal de redação, verificação cruzada e organização de informação, devolvendo tempo para a engenharia de fato. Cite os números como ordens de grandeza realistas, não promessas.">
+    <span class="eyebrow">Bloco 1 · Contexto</span>
+    <h2>Por que falar disso <span class="accent">agora</span>?</h2>
+    <div class="two" style="margin-top:.6rem">
+      <div class="stack">
+        <p>Grande parte das horas de um projeto não é cálculo: é <b>redigir, conferir, padronizar e cruzar informação</b> entre disciplinas, normas e pranchas.</p>
+        <ul class="bullets" style="margin-top:.4rem">
+          <li>Memoriais descritivos e de cálculo extensos e repetitivos</li>
+          <li>Conferência manual contra normas e contra outras disciplinas</li>
+          <li>Especificações e cadernos de encargos copiados e adaptados</li>
+          <li>Leitura de sondagens, relatórios e PDFs longos</li>
+        </ul>
+        <p class="muted" style="margin-top:.5rem">Modelos de linguagem hoje leem, escrevem e raciocinam sobre documentos técnicos com contexto de até <b class="accent">1 milhão de tokens</b> — um projeto inteiro cabe na "memória" da conversa.</p>
+      </div>
+      <div class="stack">
+        <div class="card accentbar">
+          <div class="kpi">
+            <div class="item"><div class="num">~40%</div><div class="lbl">do tempo de projeto em tarefas de texto/conferência</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>O ganho real</h3>
+          <p>Não é "a IA projeta sozinha". É <b>devolver horas</b> de trabalho braçal para você fazer <b>engenharia</b> — decisão, verificação e responsabilidade técnica.</p>
+        </div>
+        <div class="card amberbar">
+          <h3>A regra de ouro</h3>
+          <p><b>A IA produz o rascunho; o engenheiro assina.</b> Toda saída é insumo a ser conferido — nunca entrega final automática.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Contexto</span><span>1 / 7</span></div>
+  </section>
+
+  <!-- 4 — ANTES x DEPOIS -->
+  <section class="slide" data-notes="Mostre o contraste concreto de uma tarefa típica: elaborar o memorial descritivo de uma edificação. Antes: horas montando do zero a partir de modelos antigos. Depois: minutos para um rascunho estruturado a partir dos dados do projeto, e o tempo restante para conferir. Reforce: o tempo não desaparece, ele migra de 'produzir' para 'verificar'.">
+    <span class="eyebrow">Bloco 1 · Contexto</span>
+    <h2>O que muda no fluxo de trabalho</h2>
+    <div class="two" style="margin-top:.8rem">
+      <div class="card" style="border-top:3px solid var(--bad)">
+        <h3 style="color:var(--bad)">Fluxo tradicional</h3>
+        <ul class="bullets">
+          <li>Abrir um memorial antigo e adaptar manualmente</li>
+          <li>Reescrever especificações campo a campo</li>
+          <li>Conferir norma com a planilha aberta ao lado</li>
+          <li>Resumir relatório de sondagem lendo página a página</li>
+        </ul>
+        <p class="muted" style="margin-top:.6rem">Horas de produção • foco no <b>braçal</b></p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--good)">
+        <h3 style="color:var(--good)">Fluxo assistido por IA</h3>
+        <ul class="checks">
+          <li>Rascunho do memorial a partir dos dados do projeto em minutos</li>
+          <li>Especificações geradas e padronizadas conforme template</li>
+          <li>Checklist normativo automático apontando pendências</li>
+          <li>Resumo e extração de dados de sondagem em segundos</li>
+        </ul>
+        <p class="muted" style="margin-top:.6rem">Minutos de produção • foco na <b>conferência e decisão</b></p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.2rem;max-width:60ch">O tempo migra de <span class="accent2">produzir</span> para <span class="accent">verificar e decidir</span>. É aí que está o valor de engenharia.</p>
+    <div class="footer"><span class="tag">Contexto</span><span>Antes × Depois</span></div>
+  </section>
+
+  <!-- 5 — O QUE É O CLAUDE -->
+  <section class="slide" data-notes="Explique sem jargão. Um LLM é um assistente que entende e gera linguagem (texto, tabelas, código) e raciocina sobre documentos. O Claude, da Anthropic, é um desses modelos, com forte capacidade de seguir instruções e lidar com documentos longos. Não é um banco de dados de normas — é um motor de raciocínio sobre o que VOCÊ fornece. Daí a importância de dar o contexto certo.">
+    <span class="eyebrow">Bloco 2 · Fundamentos</span>
+    <h2>O que é o <span class="accent">Claude</span> (e o que ele não é)</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>Um <b>modelo de linguagem</b> (LLM): um assistente que lê, escreve, organiza e <b>raciocina</b> sobre texto, tabelas, código, imagens e PDFs.</p>
+        <div class="card accentbar"><h3>É bom para</h3>
+          <ul class="checks">
+            <li>Redigir e padronizar textos técnicos</li>
+            <li>Ler documentos longos e extrair/resumir dados</li>
+            <li>Conferir consistência e apontar divergências</li>
+            <li>Gerar e revisar planilhas e código</li>
+          </ul>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card" style="border-top:3px solid var(--warn)"><h3 style="color:var(--warn)">Limites a respeitar</h3>
+          <ul class="bullets">
+            <li><b>Não é um repositório oficial de normas</b> — pode citar errado se você não fornecer a fonte</li>
+            <li>Pode <b>"alucinar"</b> (inventar com confiança) — tudo deve ser conferido</li>
+            <li>Cálculo estrutural fino: use-o para <b>verificar</b> e organizar, não como software de cálculo certificado</li>
+          </ul>
+        </div>
+        <div class="card amberbar"><h3>A virada de chave</h3>
+          <p>Ele raciocina sobre <b>o que você fornece</b>. Forneça os dados, a norma e o template → respostas confiáveis e rastreáveis.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Fundamentos</span><span>2 / 7</span></div>
+  </section>
+
+  <!-- 6 — FORMAS DE ACESSO -->
+  <section class="slide" data-notes="Quatro portas de entrada, do mais simples ao mais avançado. (1) Claude.ai: o chat, para começar hoje. (2) Projects: você sobe normas, templates e padrões do escritório, e tudo passa a usar esse contexto. (3) Claude Code: roda no computador e mexe em arquivos, planilhas e scripts. (4) API: para construir suas próprias ferramentas. A maioria dos escritórios começa em 1 e 2.">
+    <span class="eyebrow">Bloco 2 · Fundamentos</span>
+    <h2>Quatro formas de usar — do simples ao avançado</h2>
+    <div class="grid g4" style="margin-top:1.2rem">
+      <div class="card accentbar">
+        <h3>1 · Claude.ai</h3>
+        <p>O chat no navegador. Anexa PDF, planta, planilha e conversa. <b>Comece hoje aqui.</b></p>
+        <div class="tagrow"><span class="pill on">Zero configuração</span></div>
+      </div>
+      <div class="card accentbar">
+        <h3>2 · Projects</h3>
+        <p>Uma "área de trabalho" com suas <b>normas, templates e padrões</b> carregados. Todo chat já nasce com esse contexto.</p>
+        <div class="tagrow"><span class="pill on">Memória do escritório</span></div>
+      </div>
+      <div class="card amberbar">
+        <h3>3 · Claude Code</h3>
+        <p>Roda na máquina e <b>edita arquivos</b>: planilhas, scripts, relatórios. Automação de verdade.</p>
+        <div class="tagrow"><span class="pill on">Mexe em arquivos</span></div>
+      </div>
+      <div class="card amberbar">
+        <h3>4 · API</h3>
+        <p>O motor por trás de tudo. Você <b>programa</b> suas próprias ferramentas e plug-ins.</p>
+        <div class="tagrow"><span class="pill on">Ferramentas próprias</span></div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.4rem;max-width:64ch">Trajetória típica de um escritório: <span class="accent">Chat</span> → <span class="accent">Projects</span> → <span class="accent2">Claude Code / API</span>.</p>
+    <div class="footer"><span class="tag">Fundamentos</span><span>Acesso</span></div>
+  </section>
+
+  <!-- 7 — ANATOMIA DO PROMPT -->
+  <section class="slide" data-notes="Este é o slide mais importante para o público começar a ter resultados bons. Ensine os 5 ingredientes: Papel, Contexto/Dados, Tarefa, Formato e Restrições. Leia o exemplo em voz alta e mostre como ele é específico. Dica prática: peça sempre o FORMATO de saída (tabela, tópicos, seção de memorial) e as RESTRIÇÕES (qual norma, qual unidade, o que não inventar).">
+    <span class="eyebrow">Bloco 3 · Bom prompt</span>
+    <h2>Anatomia de um bom prompt</h2>
+    <div class="two" style="margin-top:.4rem">
+      <div class="stack">
+        <div class="card"><h3>① Papel</h3><p class="muted">"Você é um engenheiro civil projetista estrutural…"</p></div>
+        <div class="card"><h3>② Contexto / Dados</h3><p class="muted">Os dados do projeto, a norma aplicável, o template do escritório (anexe os arquivos)</p></div>
+        <div class="card"><h3>③ Tarefa</h3><p class="muted">"Redija o memorial descritivo da fundação…"</p></div>
+        <div class="card"><h3>④ Formato</h3><p class="muted">"Em seções numeradas, linguagem ABNT, tabela de cargas…"</p></div>
+        <div class="card"><h3>⑤ Restrições</h3><p class="muted">"Use NBR 6122; não invente valores — se faltar dado, sinalize."</p></div>
+      </div>
+      <div class="stack">
+        <h3>Exemplo aplicado</h3>
+        <pre>Você é um <b>engenheiro civil projetista</b> com domínio
+da <b>NBR 6122 (fundações)</b>.
+
+CONTEXTO: edifício residencial, 8 pavimentos,
+sapatas isoladas; solo conforme o relatório de
+sondagem anexo (SPT). Use o template anexo.
+
+TAREFA: redija o <b>memorial descritivo das
+fundações</b>, item a item.
+
+FORMATO: seções numeradas; tabela com cargas por
+pilar; linguagem técnica ABNT.
+
+RESTRIÇÕES: cite a NBR 6122 onde aplicável.
+NÃO invente valores — onde faltar dado, escreva
+"[VERIFICAR: ...]" e liste as pendências ao final.</pre>
+        <p class="muted small">A frase "não invente — sinalize pendências" é o que torna a saída <b>confiável e conferível</b>.</p>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Bom prompt</span><span>3 / 7</span></div>
+  </section>
+
+  <!-- 8 — CUIDADOS -->
+  <section class="slide" data-notes="Quatro cuidados inegociáveis. Alucinação: nunca aceite número/cláusula sem fonte. Norma: forneça o texto da norma como contexto e peça citação do item. Sigilo/LGPD: cuidado com dados de clientes e projetos confidenciais — use contas e políticas adequadas. Responsabilidade: a ART/RRT é sua; a IA é ferramenta, como uma calculadora avançada. Esse slide protege o escritório.">
+    <span class="eyebrow">Bloco 3 · Bom prompt</span>
+    <h2>Quatro cuidados <span class="accent2">inegociáveis</span></h2>
+    <div class="grid g2" style="margin-top:1rem">
+      <div class="card" style="border-top:3px solid var(--bad)">
+        <h3 style="color:var(--bad)">1 · Alucinação</h3>
+        <p>Pode afirmar valores e cláusulas com confiança e estar errado. <b>Exija fonte e peça para sinalizar incertezas.</b> Nunca copie número sem conferir.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--warn)">
+        <h3 style="color:var(--warn)">2 · Normas (ABNT)</h3>
+        <p>Não confie na "memória" do modelo sobre a norma. <b>Forneça o texto</b> da NBR como contexto e peça citação do item exato.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h3>3 · Sigilo & LGPD</h3>
+        <p>Dados de clientes e projetos confidenciais exigem cuidado. Use contas/planos adequados e políticas internas do escritório.</p>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h3 style="color:var(--accent2)">4 · Responsabilidade técnica</h3>
+        <p>A <b>ART/RRT é do engenheiro</b>. A IA é ferramenta — como uma calculadora avançada. A revisão humana é obrigatória.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.2rem;max-width:62ch">Trate cada saída como <span class="accent2">minuta de estagiário brilhante</span>: ótima velocidade, revisão sempre.</p>
+    <div class="footer"><span class="tag">Bom prompt</span><span>Governança</span></div>
+  </section>
+
+  <!-- 9 — MAPA DE APLICAÇÕES -->
+  <section class="slide" data-notes="Visão panorâmica das aplicações em projeto. Divida em 4 famílias. Diga que nos próximos slides vamos detalhar memoriais e conferência, que foram os pedidos centrais. Este slide é o 'mapa do tesouro' — cada cartão é um caso de uso que paga o investimento.">
+    <span class="eyebrow">Bloco 4 · Aplicações em projetos</span>
+    <h2>Onde a IA entra no projeto</h2>
+    <div class="grid g4" style="margin-top:1rem">
+      <div class="card accentbar"><h3>Elaboração</h3>
+        <ul class="bullets"><li>Memorial descritivo</li><li>Memorial de cálculo</li><li>Especificações técnicas</li><li>Caderno de encargos</li></ul>
+      </div>
+      <div class="card accentbar"><h3>Conferência</h3>
+        <ul class="bullets"><li>Checagem normativa</li><li>Compatibilização entre disciplinas</li><li>Revisão de consistência</li><li>Verificação de cálculo</li></ul>
+      </div>
+      <div class="card amberbar"><h3>Análise</h3>
+        <ul class="bullets"><li>Sondagens (SPT)</li><li>Relatórios e laudos</li><li>Extração de dados de PDF</li><li>Leitura de pranchas</li></ul>
+      </div>
+      <div class="card amberbar"><h3>Automação</h3>
+        <ul class="bullets"><li>Quantitativos</li><li>Orçamento e composições</li><li>Planilhas e relatórios</li><li>Ferramentas próprias</li></ul>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:1.1rem">A seguir: detalhamos <b class="accent">memoriais</b> e <b class="accent">conferência</b> — os pilares do pedido.</p>
+    <div class="footer"><span class="tag">Aplicações</span><span>4 / 7</span></div>
+  </section>
+
+  <!-- 10 — MEMORIAL DESCRITIVO -->
+  <section class="slide" data-notes="Caso de uso #1, o mais pedido. A receita: dados do projeto + template do escritório + norma → rascunho estruturado. Destaque que o segredo é alimentar o modelo com o SEU padrão (template), para a saída já sair na cara do escritório. Mostre o fluxo de 4 passos. Lembre: o resultado é minuta para conferência.">
+    <span class="eyebrow">Bloco 4 · Aplicações</span>
+    <h2>Memorial descritivo</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>A IA monta a estrutura completa do memorial a partir dos <b>dados do projeto</b> e do <b>template do escritório</b> — em minutos, já na sua linguagem.</p>
+        <div class="flow" style="flex-direction:column;gap:.5rem">
+          <div class="step"><span class="n">1</span> Anexe dados do projeto + template + norma</div>
+          <div class="step"><span class="n">2</span> Peça o memorial em seções numeradas</div>
+          <div class="step"><span class="n">3</span> Modelo gera o rascunho e lista pendências</div>
+          <div class="step"><span class="n">4</span> Engenheiro confere, ajusta e assina</div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card accentbar"><h3>Entra</h3><p class="muted">Características da obra, sistema construtivo, materiais, dados de sondagem, template .docx do escritório</p></div>
+        <div class="card"><h3>Sai</h3><p class="muted">Memorial estruturado, padronizado, com tabelas e seção final de <b>[VERIFICAR]</b> apontando o que falta</p></div>
+        <div class="card amberbar"><h3>Segredo</h3><p>Quem dá o <b>template</b> manda no resultado. A saída já nasce na identidade do escritório.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Aplicações</span><span>Memorial descritivo</span></div>
+  </section>
+
+  <!-- 11 — MEMORIAL DE CÁLCULO & ESPECIFICAÇÕES -->
+  <section class="slide" data-notes="Dois casos juntos. Memorial de cálculo: a IA NÃO substitui o software estrutural — ela ORGANIZA hipóteses, premissas, transcreve resultados do software para texto e confere coerência de unidades e ordens de grandeza. Especificações técnicas: gera e padroniza descritivos de serviços/materiais a partir do projeto, evitando o copia-e-cola de obras anteriores que carrega erros.">
+    <span class="eyebrow">Bloco 4 · Aplicações</span>
+    <h2>Memorial de cálculo &amp; especificações</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="card" style="border-top:3px solid var(--accent)">
+        <h3>Memorial de cálculo</h3>
+        <p class="muted">A IA <b>organiza e redige</b>, não substitui o software estrutural.</p>
+        <ul class="checks" style="margin-top:.4rem">
+          <li>Estrutura premissas, hipóteses e cargas</li>
+          <li>Transforma resultados do software em texto técnico</li>
+          <li>Confere unidades e ordens de grandeza</li>
+          <li>Aponta inconsistências entre dados e resultados</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h3>Especificações técnicas</h3>
+        <p class="muted">Gera descritivos de serviços e materiais padronizados.</p>
+        <ul class="checks" style="margin-top:.4rem">
+          <li>Caderno de encargos a partir do escopo</li>
+          <li>Descritivos consistentes entre disciplinas</li>
+          <li>Elimina o "copia-e-cola" que carrega erros antigos</li>
+          <li>Alinhado a normas e ao padrão do escritório</li>
+        </ul>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.1rem;max-width:64ch">Princípio: a IA cuida da <span class="accent">forma e da consistência</span>; a <span class="accent2">decisão de engenharia</span> continua sendo sua.</p>
+    <div class="footer"><span class="tag">Aplicações</span><span>Cálculo & especificações</span></div>
+  </section>
+
+  <!-- 12 — ANÁLISE DE DOCUMENTOS -->
+  <section class="slide" data-notes="Capacidade poderosa e pouco explorada: leitura de documentos. Sobe o relatório de sondagem em PDF e pede: tabela de NSPT por profundidade, nível d'água, resumo das camadas, recomendações de fundação para conferência. Idem para laudos, contratos, ARTs, relatórios de ensaios. Visão (imagem) também: o modelo lê plantas e detalhes. Sempre conferir extrações.">
+    <span class="eyebrow">Bloco 4 · Aplicações</span>
+    <h2>Análise e extração de documentos</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>Suba PDFs longos (sondagens, laudos, relatórios, contratos) e peça <b>extração estruturada</b> em segundos.</p>
+        <ul class="bullets">
+          <li><b>Sondagem (SPT):</b> tabela de N<sub>SPT</sub> por profundidade, NA, camadas</li>
+          <li><b>Laudos e ensaios:</b> resumo dos resultados e não-conformidades</li>
+          <li><b>Contratos / editais:</b> obrigações, prazos, exigências técnicas</li>
+          <li><b>Imagens e pranchas:</b> leitura de plantas, cortes e detalhes</li>
+        </ul>
+      </div>
+      <div class="stack">
+        <h3>Exemplo de pedido</h3>
+        <pre>Do relatório de sondagem anexo, extraia:
+1. Tabela: profundidade × N<sub>SPT</sub> × descrição da camada
+2. Nível d'água
+3. Resumo das camadas (3 linhas)
+4. Pontos de atenção para fundação
+   <span class="tok-c"># para conferência do projetista</span>
+
+Marque com "?" qualquer leitura incerta do PDF.</pre>
+        <p class="muted small">Saídas em tabela são fáceis de <b>conferir</b> e de jogar direto numa planilha.</p>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Aplicações</span><span>Documentos</span></div>
+  </section>
+
+  <!-- 13 — QUANTITATIVOS -->
+  <section class="slide" data-notes="Quantitativos e orçamento. A IA estrutura levantamentos, organiza composições e cruza com bases de preço que VOCÊ fornece (SINAPI, tabela própria). Cuidado central: quantitativo a partir de planta exige conferência rigorosa — use a IA para acelerar a montagem da planilha e a verificação cruzada, não para 'adivinhar' áreas. Conecte ao Claude Code para gerar a planilha de fato.">
+    <span class="eyebrow">Bloco 4 · Aplicações</span>
+    <h2>Quantitativos &amp; orçamento</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>Da planilha de levantamento ao orçamento, a IA <b>estrutura, organiza e confere</b>.</p>
+        <ul class="checks">
+          <li>Monta a estrutura da planilha de quantitativos</li>
+          <li>Organiza composições de serviços</li>
+          <li>Cruza com base de preços que você fornece (ex.: SINAPI)</li>
+          <li>Verifica somas, unidades e itens faltantes</li>
+        </ul>
+      </div>
+      <div class="stack">
+        <div class="card" style="border-top:3px solid var(--warn)">
+          <h3 style="color:var(--warn)">Cuidado-chave</h3>
+          <p>Levantar área/volume direto de planta exige <b>conferência rigorosa</b>. Use a IA para acelerar a montagem e a <b>verificação cruzada</b>, não para "adivinhar" medidas.</p>
+        </div>
+        <div class="card accentbar">
+          <h3>Combo poderoso</h3>
+          <p>Com o <b>Claude Code</b>, a IA gera o arquivo <code>.xlsx</code> de fato — fórmulas, abas e totais — não só o texto.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Aplicações</span><span>Quantitativos</span></div>
+  </section>
+
+  <!-- 14 — CONFERÊNCIA (CORE) -->
+  <section class="slide" data-notes="Entramos no bloco de CONFERÊNCIA, um dos pedidos centrais. A grande sacada: o modelo é EXCELENTE em achar inconsistências quando você dá um critério claro. Três frentes: normativa (contra a NBR fornecida), entre disciplinas (compatibilização) e interna (consistência do próprio documento). Próximo slide: a receita do checklist.">
+    <span class="eyebrow">Bloco 5 · Conferência</span>
+    <h2>Conferência assistida — onde a IA brilha</h2>
+    <div class="grid g3" style="margin-top:1rem">
+      <div class="card accentbar"><h3>Normativa</h3>
+        <p>Confronta o documento com a <b>NBR fornecida</b> e aponta itens não atendidos, citando a cláusula.</p>
+      </div>
+      <div class="card accentbar"><h3>Compatibilização</h3>
+        <p>Cruza <b>disciplinas</b> (arquitetura × estrutura × instalações) e sinaliza conflitos e divergências.</p>
+      </div>
+      <div class="card accentbar"><h3>Consistência interna</h3>
+        <p>Verifica se o documento é <b>coerente consigo mesmo</b>: cargas, cotas, unidades, referências cruzadas.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:1.3rem;max-width:66ch">Dê um <span class="accent">critério explícito</span> e o modelo vira um revisor incansável que não se cansa na página 80.</p>
+    <div class="footer"><span class="tag">Conferência</span><span>5 / 7</span></div>
+  </section>
+
+  <!-- 15 — RECEITA CHECKLIST NORMATIVO -->
+  <section class="slide" data-notes="Receita prática de conferência normativa. O truque: peça a saída em TABELA com status (Atende / Não atende / Verificar) e a cláusula. Isso transforma a revisão num checklist auditável. Mostre o exemplo de prompt e a tabela-resultado. Diga que essa mesma receita serve para checklists de aprovação em prefeitura, corpo de bombeiros, acessibilidade (NBR 9050) etc.">
+    <span class="eyebrow">Bloco 5 · Conferência · Receita</span>
+    <h2>Receita: checklist normativo automático</h2>
+    <div class="two" style="margin-top:.4rem">
+      <div class="stack">
+        <h3>Prompt</h3>
+        <pre>Você é revisor de projetos.
+
+Confira o <b>projeto anexo</b> contra a <b>NBR 9050
+(acessibilidade)</b>, cujo texto está anexo.
+
+Para cada requisito aplicável, devolva uma
+<b>tabela</b>: Item da norma | Requisito | Situação
+no projeto | <b>Status</b> | Observação.
+
+Status ∈ {Atende, Não atende, Verificar}.
+Não invente: se não der para avaliar pelo material,
+marque "Verificar".</pre>
+      </div>
+      <div class="stack">
+        <h3>Saída (exemplo)</h3>
+        <table>
+          <tr><th>Item</th><th>Req.</th><th>Status</th></tr>
+          <tr><td>6.1.2</td><td>Largura de porta ≥ 0,80 m</td><td><span class="dot" style="background:var(--good)"></span>Atende</td></tr>
+          <tr><td>6.9</td><td>Rampa i ≤ 8,33%</td><td><span class="dot" style="background:var(--bad)"></span>Não atende</td></tr>
+          <tr><td>7.4</td><td>Sanitário PCD</td><td><span class="dot" style="background:var(--warn)"></span>Verificar</td></tr>
+        </table>
+        <p class="muted small" style="margin-top:.6rem">Vale para prefeitura, bombeiros, NBR 9050, desempenho (NBR 15575)… Troque só a norma anexa.</p>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Conferência</span><span>Checklist</span></div>
+  </section>
+
+  <!-- 16 — RECEITA VERIFICAÇÃO DE CÁLCULO -->
+  <section class="slide" data-notes="Segunda receita de conferência: verificação de cálculo e de premissas. A IA refaz o raciocínio passo a passo, checa unidades, recalcula ordens de grandeza e compara com o resultado do software. Não é para substituir o cálculo — é uma segunda checagem independente que pega erro de digitação, unidade trocada e premissa esquecida. Modo 'adaptive thinking' ajuda em raciocínio numérico.">
+    <span class="eyebrow">Bloco 5 · Conferência · Receita</span>
+    <h2>Receita: verificação independente de cálculo</h2>
+    <div class="two" style="margin-top:.4rem">
+      <div class="stack">
+        <p>Use o modelo como <b>segunda checagem</b> — independente do seu software — para pegar erro de unidade, digitação e premissa esquecida.</p>
+        <ul class="checks">
+          <li>Refaz o raciocínio passo a passo</li>
+          <li>Verifica coerência de <b>unidades</b></li>
+          <li>Recalcula <b>ordens de grandeza</b></li>
+          <li>Compara com o resultado do software e aponta divergência</li>
+        </ul>
+        <div class="card amberbar" style="margin-top:.3rem"><p class="small">Não substitui o cálculo certificado — é uma <b>rede de segurança</b> a mais.</p></div>
+      </div>
+      <div class="stack">
+        <h3>Prompt</h3>
+        <pre>Refaça a verificação ao esforço cortante desta
+viga com a <b>NBR 6118</b> (texto anexo).
+
+Dados: V<sub>sd</sub>, b<sub>w</sub>, d, f<sub>ck</sub>, estribos (planilha anexa).
+
+1. Confira as <b>unidades</b> de cada termo.
+2. Recalcule passo a passo, mostrando a conta.
+3. Compare com o valor da planilha.
+4. Liste qualquer <b>divergência</b> ou premissa
+   ausente.</pre>
+        <p class="muted small">Peça "mostre a conta": raciocínio explícito é mais fácil de auditar.</p>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Conferência</span><span>Cálculo</span></div>
+  </section>
+
+  <!-- 17 — PROJECTS / BASE DE CONHECIMENTO -->
+  <section class="slide" data-notes="Como escalar isso no escritório: Projects. Em vez de anexar os mesmos arquivos toda vez, você cria um Project com as normas usadas, os templates de memorial/especificação e o manual de padronização do escritório. Todo mundo da equipe usa o mesmo contexto → respostas consistentes e na identidade da empresa. É a 'memória institucional' viva.">
+    <span class="eyebrow">Bloco 6 · Mão na massa</span>
+    <h2>Escalando: a base de conhecimento do escritório</h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>Com <b>Projects</b>, você cria uma área com o contexto do escritório carregado <b>uma vez</b> — e toda a equipe reaproveita.</p>
+        <div class="flow" style="flex-direction:column;gap:.5rem">
+          <div class="step"><span class="n">1</span> Suba normas usadas, templates e manual de padronização</div>
+          <div class="step"><span class="n">2</span> Defina o "tom" e as regras (ex.: sempre sinalizar pendências)</div>
+          <div class="step"><span class="n">3</span> Equipe trabalha com saídas <b>consistentes</b> entre projetos</div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card accentbar"><h3>O que carregar</h3>
+          <ul class="bullets">
+            <li>Templates de memorial e especificação</li>
+            <li>Normas e checklists de aprovação</li>
+            <li>Manual de padronização e glossário</li>
+            <li>Exemplos de projetos bem-feitos (referência)</li>
+          </ul>
+        </div>
+        <div class="card"><h3>Resultado</h3><p>Padronização real + onboarding de novos projetistas muito mais rápido.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Mão na massa</span><span>6 / 7</span></div>
+  </section>
+
+  <!-- 18 — NÍVEIS DE AUTOMAÇÃO -->
+  <section class="slide" data-notes="Ponte para o desenvolvimento de ferramentas. Mostre a escada de automação: do chat manual até a ferramenta que roda sozinha. Cada degrau exige mais investimento, mas entrega mais escala. A maioria fica feliz no degrau 2-3; quem tem volume justifica o 4-5. Prepara o terreno para a parte de programação que vem a seguir.">
+    <span class="eyebrow">Bloco 7 · Ferramentas próprias</span>
+    <h2>Do prompt à ferramenta: a escada da automação</h2>
+    <div class="flow" style="margin-top:1.2rem">
+      <div class="step"><span class="n">1</span><b>Chat manual</b><p class="muted small">Você pergunta, copia, cola. Custo zero.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">2</span><b>Prompts salvos</b><p class="muted small">Receitas padronizadas reutilizáveis.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">3</span><b>Projects</b><p class="muted small">Contexto do escritório embutido.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">4</span><b>Scripts (API)</b><p class="muted small">Roda em lote sobre muitos arquivos.</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">5</span><b>Agente</b><p class="muted small">Conectado às suas ferramentas, age sozinho.</p></div>
+    </div>
+    <p class="lead" style="margin-top:1.4rem;max-width:64ch">Quanto mais à direita, <span class="accent2">mais escala</span> e <span class="accent2">mais investimento</span>. Comece à esquerda e suba conforme o volume justifica.</p>
+    <div class="footer"><span class="tag">Ferramentas próprias</span><span>7 / 7</span></div>
+  </section>
+
+  <!-- 19 — API: PRIMEIRA FERRAMENTA -->
+  <section class="slide" data-notes="Mostre que programar com IA é acessível. Com poucas linhas de Python e a API da Anthropic, você cria uma ferramenta. Explique o código alto nível: instala a biblioteca, chama o modelo claude-opus-4-8 passando uma instrução de papel (system) e a tarefa. Não precisa ser programador sênior — o próprio Claude Code escreve esse código para você. Esse é o 'olá mundo' da automação.">
+    <span class="eyebrow">Bloco 7 · Ferramentas próprias</span>
+    <h2>Sua primeira ferramenta em Python</h2>
+    <div class="two" style="margin-top:.4rem">
+      <div class="stack">
+        <p>Com a <b>API</b>, poucas linhas viram uma ferramenta. E o próprio <b>Claude Code escreve esse código por você</b>.</p>
+        <ul class="bullets">
+          <li><code>pip install anthropic</code></li>
+          <li>Defina o <b>papel</b> (system) — ex.: revisor de projetos</li>
+          <li>Envie a <b>tarefa</b> e receba a resposta estruturada</li>
+          <li>Rode sobre 1 ou 1.000 documentos</li>
+        </ul>
+        <div class="card accentbar"><p class="small">Modelo recomendado: <code class="accent">claude-opus-4-8</code> — alta capacidade de raciocínio e janela de contexto de 1M de tokens.</p></div>
+      </div>
+      <div class="stack">
+        <pre><span class="tok-k">import</span> anthropic
+
+client = anthropic.<span class="tok-f">Anthropic</span>()  <span class="tok-c"># lê a chave do ambiente</span>
+
+resp = client.messages.<span class="tok-f">create</span>(
+    model=<span class="tok-s">"claude-opus-4-8"</span>,
+    max_tokens=<span class="tok-n">4000</span>,
+    system=<span class="tok-s">"Você é um engenheiro revisor de "</span>
+           <span class="tok-s">"projetos, rigoroso com a ABNT."</span>,
+    messages=[{
+        <span class="tok-s">"role"</span>: <span class="tok-s">"user"</span>,
+        <span class="tok-s">"content"</span>: <span class="tok-s">"Redija o memorial descritivo "</span>
+                   <span class="tok-s">"da fundação a partir destes dados…"</span>,
+    }],
+)
+<span class="tok-f">print</span>(resp.content[<span class="tok-n">0</span>].text)</pre>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Ferramentas próprias</span><span>API · Python</span></div>
+  </section>
+
+  <!-- 20 — VERIFICADOR AUTOMÁTICO (LOTE + ESTRUTURADO) -->
+  <section class="slide" data-notes="Aqui mostramos uma ferramenta de verdade: um verificador que roda sobre uma pasta de PDFs e devolve resultado ESTRUTURADO (JSON) para virar planilha. Explique os dois recursos: ler PDF direto (document) e saída estruturada via output_config.format, que garante um JSON com status. Isso é o esqueleto de um 'verificador normativo em lote' do escritório. Não precisam decorar — está no repositório.">
+    <span class="eyebrow">Bloco 7 · Ferramentas próprias</span>
+    <h2>Exemplo real: verificador em lote → planilha</h2>
+    <div class="two" style="margin-top:.4rem">
+      <div class="stack">
+        <p>Lê PDFs de uma pasta, confere contra um critério e devolve <b>JSON estruturado</b> — pronto para virar planilha.</p>
+        <ul class="checks">
+          <li><b>Lê PDF direto</b> (bloco <code>document</code>)</li>
+          <li><b>Saída garantida</b> em JSON (<code>output_config.format</code>)</li>
+          <li>Roda em <b>lote</b> sobre N arquivos</li>
+          <li>Resultado consolidável em <code>.xlsx</code></li>
+        </ul>
+        <div class="card amberbar"><p class="small">Código completo no repositório: <code>exemplos/verificador_normativo.py</code></p></div>
+      </div>
+      <div class="stack">
+        <pre><span class="tok-c"># para cada PDF da pasta…</span>
+resp = client.messages.<span class="tok-f">create</span>(
+  model=<span class="tok-s">"claude-opus-4-8"</span>, max_tokens=<span class="tok-n">4000</span>,
+  messages=[{<span class="tok-s">"role"</span>:<span class="tok-s">"user"</span>,<span class="tok-s">"content"</span>:[
+    {<span class="tok-s">"type"</span>:<span class="tok-s">"document"</span>,<span class="tok-s">"source"</span>:{
+       <span class="tok-s">"type"</span>:<span class="tok-s">"base64"</span>,
+       <span class="tok-s">"media_type"</span>:<span class="tok-s">"application/pdf"</span>,
+       <span class="tok-s">"data"</span>: pdf_b64}},
+    {<span class="tok-s">"type"</span>:<span class="tok-s">"text"</span>,
+     <span class="tok-s">"text"</span>:<span class="tok-s">"Confira contra a NBR 9050…"</span>}]}],
+  output_config={<span class="tok-s">"format"</span>:{<span class="tok-s">"type"</span>:<span class="tok-s">"json_schema"</span>,
+     <span class="tok-s">"schema"</span>: SCHEMA_CHECKLIST}},  <span class="tok-c"># status garantido</span>
+)</pre>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Ferramentas próprias</span><span>Verificador em lote</span></div>
+  </section>
+
+  <!-- 21 — AGENTES & MCP -->
+  <section class="slide" data-notes="O nível mais avançado: agentes com ferramentas (tools) e MCP. Explique simples: você dá ao modelo 'ferramentas' (funções) que ele pode chamar — ler um arquivo, consultar sua base de preços, escrever numa planilha, abrir um item no seu sistema. Via MCP, ele se conecta a sistemas externos (Drive, planilhas, até software de CAD/BIM via conectores). Aí ele deixa de só conversar e passa a AGIR no seu fluxo. Exemplos no slide.">
+    <span class="eyebrow">Bloco 7 · Ferramentas próprias</span>
+    <h2>Agentes &amp; MCP: quando a IA passa a <span class="accent">agir</span></h2>
+    <div class="two" style="margin-top:.5rem">
+      <div class="stack">
+        <p>Você dá <b>ferramentas</b> (funções) ao modelo. Ele decide quando chamá-las e <b>executa ações</b> no seu fluxo.</p>
+        <ul class="bullets">
+          <li>Ler/escrever <b>planilhas</b> e gerar relatórios</li>
+          <li>Consultar sua <b>base de preços</b> ou de projetos</li>
+          <li>Abrir itens no seu <b>sistema</b> de gestão</li>
+          <li>Conectar a <b>Drive, e-mail, CAD/BIM</b> via conectores (MCP)</li>
+        </ul>
+        <div class="card accentbar"><p class="small"><b>MCP</b> = padrão que conecta o modelo às suas ferramentas externas com segurança e credenciais controladas.</p></div>
+      </div>
+      <div class="stack">
+        <h3>Definindo uma ferramenta</h3>
+        <pre>tools=[{
+  <span class="tok-s">"name"</span>: <span class="tok-s">"consulta_preco_sinapi"</span>,
+  <span class="tok-s">"description"</span>: <span class="tok-s">"Retorna o preço de um "</span>
+                 <span class="tok-s">"insumo na base SINAPI."</span>,
+  <span class="tok-s">"input_schema"</span>: {<span class="tok-s">"type"</span>:<span class="tok-s">"object"</span>,
+    <span class="tok-s">"properties"</span>:{<span class="tok-s">"codigo"</span>:{<span class="tok-s">"type"</span>:<span class="tok-s">"string"</span>}},
+    <span class="tok-s">"required"</span>:[<span class="tok-s">"codigo"</span>]}}]
+<span class="tok-c"># o modelo chama a função; seu código responde;</span>
+<span class="tok-c"># ele monta o orçamento com o dado REAL.</span></pre>
+        <p class="muted small">Dado vem do seu sistema → fim da "alucinação" de preço.</p>
+      </div>
+    </div>
+    <div class="footer"><span class="tag">Ferramentas próprias</span><span>Agentes · MCP</span></div>
+  </section>
+
+  <!-- 22 — ARQUITETURA FERRAMENTA INTERNA -->
+  <section class="slide" data-notes="Junte tudo numa arquitetura de uma ferramenta interna real: ex. 'Verificador de Projetos do Escritório'. Mostre o fluxo: entrada (projeto + normas + template) → motor (Claude via API/agente, com as ferramentas internas) → saída (memorial, checklist, planilha) → revisão humana → entrega. Destaque que a revisão humana é um nó OBRIGATÓRIO do desenho, não um opcional.">
+    <span class="eyebrow">Bloco 7 · Ferramentas próprias</span>
+    <h2>Arquitetura de uma ferramenta interna</h2>
+    <div class="flow" style="margin-top:1.1rem">
+      <div class="step"><span class="n">1</span><b>Entrada</b><p class="muted small">Projeto, normas, template, base de preços</p></div>
+      <div class="arrow">→</div>
+      <div class="step" style="border-color:var(--accent)"><span class="n">2</span><b>Motor (Claude)</b><p class="muted small">API/agente + ferramentas do escritório</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">3</span><b>Saídas</b><p class="muted small">Memorial, checklist, planilha</p></div>
+      <div class="arrow">→</div>
+      <div class="step" style="border-color:var(--accent2)"><span class="n">4</span><b>Revisão humana</b><p class="muted small">Engenheiro confere e ajusta</p></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="n">5</span><b>Entrega</b><p class="muted small">Assinatura técnica · ART/RRT</p></div>
+    </div>
+    <div class="card amberbar" style="margin-top:1.3rem">
+      <p><b>O nó 4 é obrigatório por desenho.</b> A ferramenta nunca entrega direto ao cliente: ela entrega ao engenheiro, que decide e responde tecnicamente.</p>
+    </div>
+    <div class="footer"><span class="tag">Ferramentas próprias</span><span>Arquitetura</span></div>
+  </section>
+
+  <!-- 23 — ROADMAP DE IMPLEMENTAÇÃO -->
+  <section class="slide" data-notes="Como sair daqui e implementar. Roadmap em 4 fases ao longo de ~90 dias. Fase 1: piloto pessoal no chat com 2-3 receitas. Fase 2: padronizar prompts e montar o Project do escritório. Fase 3: automatizar o caso de maior volume com script/Claude Code. Fase 4: agente conectado para o fluxo crítico. Comece pequeno, meça o tempo economizado, expanda no que provou valor.">
+    <span class="eyebrow">Implementação</span>
+    <h2>Roadmap para o escritório (~90 dias)</h2>
+    <div class="grid g4" style="margin-top:1.1rem">
+      <div class="card accentbar"><h3>Fase 1 · Piloto</h3><p>Semanas 1–2</p><ul class="bullets"><li>Chat + 2–3 receitas</li><li>Mede tempo economizado</li></ul></div>
+      <div class="card accentbar"><h3>Fase 2 · Padronizar</h3><p>Semanas 3–5</p><ul class="bullets"><li>Prompts oficiais</li><li>Project do escritório</li></ul></div>
+      <div class="card amberbar"><h3>Fase 3 · Automatizar</h3><p>Semanas 6–9</p><ul class="bullets"><li>Script no caso de maior volume</li><li>Claude Code</li></ul></div>
+      <div class="card amberbar"><h3>Fase 4 · Agente</h3><p>Semanas 10–12</p><ul class="bullets"><li>Ferramenta conectada</li><li>Fluxo crítico</li></ul></div>
+    </div>
+    <p class="lead" style="margin-top:1.3rem;max-width:66ch">Princípio: <span class="accent">comece pequeno</span>, <span class="accent">meça o ganho</span>, <span class="accent2">escale no que provou valor</span>.</p>
+    <div class="footer"><span class="tag">Implementação</span><span>Roadmap</span></div>
+  </section>
+
+  <!-- 24 — GOVERNANÇA -->
+  <section class="slide" data-notes="Fechamento técnico: governança e qualidade. Cinco regras que protegem o escritório e o cliente. Reforce a responsabilidade técnica e a rastreabilidade (sempre saber de onde veio cada informação). Isso transforma a IA de risco em ativo confiável. É o slide que tranquiliza o sócio e o cliente.">
+    <span class="eyebrow">Implementação · Governança</span>
+    <h2>Qualidade, responsabilidade e confiança</h2>
+    <div class="grid g2" style="margin-top:.8rem">
+      <ul class="checks" style="font-size:1.05em">
+        <li><b>Revisão humana obrigatória</b> em toda saída — sem exceção</li>
+        <li><b>Rastreabilidade:</b> saber de onde veio cada número e cláusula</li>
+        <li><b>Fonte das normas fornecida</b> — nunca confiar na memória do modelo</li>
+      </ul>
+      <ul class="checks" style="font-size:1.05em">
+        <li><b>Sigilo e LGPD:</b> contas, planos e políticas adequadas</li>
+        <li><b>ART/RRT do engenheiro:</b> a IA é ferramenta, a responsabilidade é humana</li>
+      </ul>
+    </div>
+    <div class="card accentbar" style="margin-top:1.2rem">
+      <p>Com governança, a IA deixa de ser risco e vira <b>ativo confiável</b>: mais velocidade <b>e</b> mais qualidade, com a engenharia no comando.</p>
+    </div>
+    <div class="footer"><span class="tag">Governança</span><span>Qualidade</span></div>
+  </section>
+
+  <!-- 25 — TAKEAWAYS -->
+  <section class="slide" data-notes="Resumo em uma tela. Leia os cinco pontos com calma — é o que você quer que fique. Se o público lembrar de uma coisa só: a IA faz o rascunho, o engenheiro assina. E qualquer pessoa do escritório pode começar hoje, no chat, com uma boa receita.">
+    <span class="eyebrow">Encerramento</span>
+    <h2>O que levar desta apresentação</h2>
+    <div class="grid g2" style="margin-top:.8rem">
+      <div class="card accentbar"><h3>1 · Acelera o braçal</h3><p>Memoriais, especificações e quantitativos em minutos, na identidade do escritório.</p></div>
+      <div class="card accentbar"><h3>2 · É um revisor incansável</h3><p>Conferência normativa, compatibilização e verificação de cálculo com critério explícito.</p></div>
+      <div class="card amberbar"><h3>3 · Lê seus documentos</h3><p>Sondagens, laudos, contratos e pranchas viram dados estruturados.</p></div>
+      <div class="card amberbar"><h3>4 · Você constrói suas ferramentas</h3><p>Da receita salva ao agente conectado — começando com poucas linhas.</p></div>
+      <div class="card" style="grid-column:1 / -1;border-top:3px solid var(--accent)"><h3>5 · A regra que organiza tudo</h3><p class="big" style="font-size:clamp(20px,2.6vw,32px)">A IA faz o rascunho. O engenheiro confere e assina.</p></div>
+    </div>
+    <div class="footer"><span class="tag">Encerramento</span><span>Takeaways</span></div>
+  </section>
+
+  <!-- 26 — PRÓXIMOS PASSOS / OBRIGADO -->
+  <section class="slide" data-notes="Chamada para ação e encerramento. Proponha o primeiro passo concreto: escolher UMA tarefa repetitiva e aplicar uma receita esta semana. Abra para perguntas. Lembre que o repositório traz o roteiro, os exemplos de prompt e o código das ferramentas. Agradeça.">
+    <div class="center">
+      <span class="eyebrow">Próximos passos</span>
+      <h1>Comece <span class="accent">esta semana</span>.</h1>
+      <div class="grid g3" style="margin-top:1.6rem">
+        <div class="card accentbar"><h3>Hoje</h3><p>Escolha 1 tarefa repetitiva (ex.: memorial descritivo)</p></div>
+        <div class="card accentbar"><h3>Esta semana</h3><p>Aplique uma receita no chat e meça o tempo economizado</p></div>
+        <div class="card amberbar"><h3>Este mês</h3><p>Monte o Project do escritório e padronize os prompts</p></div>
+      </div>
+      <p class="lead" style="margin-top:1.8rem;max-width:64ch">No repositório: este deck, o <span class="accent">roteiro do apresentador</span>, uma <span class="accent">biblioteca de prompts</span> e o <span class="accent">código das ferramentas</span> de exemplo.</p>
+      <h2 style="margin-top:1.6rem">Obrigado! Perguntas?</h2>
+    </div>
+    <div class="footer"><span class="tag">Fim</span><span>Use ← para revisar &nbsp;•&nbsp; T = zerar cronômetro</span></div>
+  </section>
+
+</div>
+
+<!-- HUD -->
+<div class="hud">
+  <span id="timer">00:00</span>
+  <button class="btn" id="btnNotes" title="Notas do apresentador (N)">Notas</button>
+  <button class="btn" id="btnFull" title="Tela cheia (F)">⛶</button>
+</div>
+
+<!-- NOTES PANEL -->
+<div class="notes" id="notes">
+  <h4>Notas do apresentador — <span id="noteIdx"></span></h4>
+  <div id="noteBody"></div>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const progress = document.getElementById('progress');
+  const notes = document.getElementById('notes');
+  const noteBody = document.getElementById('noteBody');
+  const noteIdx = document.getElementById('noteIdx');
+
+  function render(){
+    slides.forEach((s,n)=>s.classList.toggle('active', n===i));
+    progress.style.width = ((i+1)/slides.length*100)+'%';
+    noteIdx.textContent = (i+1)+' / '+slides.length;
+    noteBody.innerHTML = '<p>'+(slides[i].dataset.notes||'—')+'</p>';
+    location.hash = 'slide-'+(i+1);
+  }
+  function go(n){ i = Math.max(0, Math.min(slides.length-1, n)); render(); }
+  function next(){ go(i+1); }
+  function prev(){ go(i-1); }
+
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+    else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+    else if(e.key==='Home'){ go(0); }
+    else if(e.key==='End'){ go(slides.length-1); }
+    else if(e.key.toLowerCase()==='n'){ notes.classList.toggle('show'); }
+    else if(e.key.toLowerCase()==='f'){ toggleFull(); }
+    else if(e.key.toLowerCase()==='t'){ resetTimer(); }
+  });
+
+  // tap / click navigation (right half = next, left = prev)
+  document.getElementById('deck').addEventListener('click', e=>{
+    if(e.target.closest('a')) return;
+    const x = e.clientX / window.innerWidth;
+    if(x>0.5) next(); else prev();
+  });
+
+  document.getElementById('btnNotes').onclick = ()=>notes.classList.toggle('show');
+  document.getElementById('btnFull').onclick = toggleFull;
+  function toggleFull(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen?.(); }
+    else { document.exitFullscreen?.(); }
+  }
+
+  // ---- Timer (30 min budget) ----
+  const timerEl = document.getElementById('timer');
+  let start = Date.now(), raf;
+  function fmt(ms){
+    const s = Math.floor(ms/1000);
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    return m+':'+ss;
+  }
+  function tick(){
+    const el = Date.now()-start;
+    timerEl.textContent = fmt(el);
+    timerEl.classList.toggle('warn', el>=25*60*1000 && el<30*60*1000);
+    timerEl.classList.toggle('over', el>=30*60*1000);
+    raf = requestAnimationFrame(tick);
+  }
+  function resetTimer(){ start = Date.now(); }
+  tick();
+
+  // deep-link support
+  if(location.hash.startsWith('#slide-')){
+    const n = parseInt(location.hash.replace('#slide-',''),10);
+    if(!isNaN(n)) i = Math.max(0,Math.min(slides.length-1,n-1));
+  }
+  render();
+})();
+</script>
+</body>
+</html>
