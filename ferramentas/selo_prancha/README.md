@@ -11,8 +11,8 @@ logo hexagonal "M", Space Grotesk / Inter / JetBrains Mono), a partir de **uma �
 
 ## Geometria
 - Folha com 594 mm de largura (rolo A1) e comprimento livre por prancha (`"folha": [594, 581]`).
-- Margens NBR: 25 mm à esquerda, 10 mm nas demais. Selo 170 × 184 mm no canto inferior direito.
-- Faixas do selo (de cima para baixo): Aprovações · Cabeçalho (logo + tipo de projeto) · Obra/endereço ·
+- Margens NBR: 25 mm à esquerda, 10 mm nas demais. Selo 170 × 196 mm no canto inferior direito.
+- Faixas do selo (de cima para baixo): Aprovações · Cabeçalho (logo em destaque + tipo de projeto) · Obra/endereço ·
   Data/Escala/Desenhista/Prancha · Proprietário/CPF-CNPJ/Conteúdo/Resp. técnico · Assinaturas · Rodapé.
 
 ## Uso

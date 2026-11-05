@@ -98,8 +98,8 @@ F_ASSIN = (8.0, 40.0)
 F_DADOS = (40.0, 76.0)
 F_META = (76.0, 94.0)
 F_OBRA = (94.0, 122.0)
-F_CAB = (122.0, 138.0)
-F_APROV = (138.0, 184.0)
+F_CAB = (122.0, 154.0)     # cabeçalho com logo em destaque
+F_APROV = (154.0, 196.0)
 SELO_A = F_APROV[1]
 
 
@@ -321,13 +321,15 @@ def itens_selo(cfg: dict, prancha: dict) -> list[dict]:
 
     # ---- cabeçalho: logo + marca + tipo de projeto ----
     meio_cab = (F_CAB[0] + F_CAB[1]) / 2
-    h_logo = 10.5
+    h_logo = 24.0                                   # logo em destaque (altura do hexágono)
     it.append(dict(t="logo", x=PAD, y=meio_cab - h_logo / 2, h=h_logo, layer="MOOS-SELO-LOGO", cor=CORES["logo"]))
-    larg_logo = h_logo * 188.1 / 217.2
-    it.append(dict(t="marca", x=PAD + larg_logo + 3.0, y=meio_cab - 0.70 * 5.4 / 2, s=esc["marca"],
-                   f="display", size=5.4, track=-0.01, layer="MOOS-SELO-LOGO", cor=CORES["ink900"]))
-    texto(L - PAD, meio_cab - 0.73 * 2.7 / 2, obra["projeto"].upper(), "mono", 2.7, CORES["ink500"],
-          "MOOS-SELO-ATRIB", anchor="end", track=0.14, attr="PROJETO", prompt="Tipo de projeto")
+    x_marca = PAD + h_logo * 188.1 / 217.2 + 5.5
+    corpo_marca, corpo_tag, folga = 9.0, 2.7, 3.6
+    pilha = 0.70 * corpo_marca + folga + 0.73 * corpo_tag      # nome + tipo de projeto, centrados no logo
+    it.append(dict(t="marca", x=x_marca, y=meio_cab + pilha / 2 - 0.70 * corpo_marca, s=esc["marca"],
+                   f="display", size=corpo_marca, track=-0.01, layer="MOOS-SELO-LOGO", cor=CORES["ink900"]))
+    texto(x_marca, meio_cab - pilha / 2, obra["projeto"].upper(), "mono", corpo_tag, CORES["ink500"],
+          "MOOS-SELO-ATRIB", track=0.14, attr="PROJETO", prompt="Tipo de projeto")
 
     # ---- obra ----
     kicker(F_OBRA[1] - 5.8, "OBRA")
