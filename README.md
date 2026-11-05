@@ -12,6 +12,7 @@ ferramentas próprias*. Pensada para caber em **no máximo 30 minutos**.
 | **`ROTEIRO.md`** | Roteiro do apresentador: cronograma por minuto, falas de apoio, versões de 15 e 30 min, controles do deck. |
 | **`PROMPTS.md`** | Biblioteca de **prompts/receitas** prontas para colar no chat (memoriais, conferência, sondagem, orçamento…). |
 | **`exemplos/`** | **Ferramentas em Python** usando a API do Claude (código comentado, pronto para adaptar). |
+| **`ferramentas/selo_prancha/`** | Gerador de **prancha + selo** no padrão Mooshammer (PDF + DXF com bloco de atributos). |
 
 ### Ferramentas de exemplo (`exemplos/`)
 - `verificador_normativo.py` — lê PDFs de uma pasta, confere contra uma norma e gera um checklist em `.xlsx`.

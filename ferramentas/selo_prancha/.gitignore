@@ -1,0 +1,4 @@
+fonts/
+saida/
+__pycache__/
+*.local.json

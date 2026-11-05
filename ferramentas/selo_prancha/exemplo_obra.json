@@ -1,0 +1,25 @@
+{
+  "arquivo": "Exemplo_Prancha_Selo_Mooshammer",
+  "escritorio": {
+    "marca": "Mooshammer Engenharia",
+    "rodape": "Mooshammer Engenharia · Joaçaba/SC",
+    "contato": "(47) 9 0000-0000 · seu-email@exemplo.com",
+    "rt_nome": "Max Mooshammer",
+    "rt_doc": "Eng. Civil · CREA/SC 139.164-0",
+    "rt_linha": "Eng. Civil Max Mooshammer · CREA/SC 139.164-0"
+  },
+  "obra": {
+    "nome": "Residência Unifamiliar",
+    "endereco": "Rua Exemplo, 100, Bairro Centro, Joaçaba/SC",
+    "projeto": "Projeto Arquitetônico",
+    "proprietario": "Nome do Proprietário",
+    "cpf_cnpj": "000.000.000-00",
+    "data": "01/01/2026",
+    "escala": "Indicada",
+    "desenhista": "—"
+  },
+  "pranchas": [
+    {"numero": "01/02", "conteudo": "Planta Baixa, Situação, Locação e Cortes", "folha": [594, 581]},
+    {"numero": "02/02", "conteudo": "Fachadas e Detalhes", "folha": [594, 333]}
+  ]
+}
